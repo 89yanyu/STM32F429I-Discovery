@@ -5,3 +5,4 @@
 1. get into project using ```cd``` 
 2. build project using ```make```
 3. simulate using ```startup.sh```
+4. if you can't run startup.sh, use ```chmod +x startup.sh```
