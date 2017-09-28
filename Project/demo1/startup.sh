@@ -1,7 +1,9 @@
 #!/bin/bash
 
 qemu-system-gnuarmeclipse \
+--verbose \
 --board STM32F429I-Discovery \
---mcu STM32F429ZI -s -S \
+-s \
 -d unimp,guest_errors  \
---image demo1.elf 
+--image demo1.elf \
+--semihosting-config enable=on,target=native

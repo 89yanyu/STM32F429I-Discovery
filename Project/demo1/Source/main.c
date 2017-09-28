@@ -160,7 +160,8 @@ void MonitorTask(void* arg)
 
 void buildString(char *buff, char *format, uint64_t number)
 {
-    for (int64_t i = 14; i >= 0; i--)
+    uint8_t i;
+    for (i = 14; i >= 0; i--)
     {
         if (number > 0)
         {
@@ -305,7 +306,7 @@ int main(void)
     traceString stLogger = xTraceRegisterString("Main");
 
     //创建全局队列
-    g_hNumberBuff = xQueueCreate(512, sizeof(int));
+    g_hNumberBuff = xQueueCreate(490, sizeof(int));
     if (NULL == g_hNumberBuff)
     {
         //创建队列失败

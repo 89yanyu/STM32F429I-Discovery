@@ -29,9 +29,7 @@ LDFLAGS=-T $(LDSCRIPT) --specs=nosys.specs $(MCFLAGS)
 
 # Inputs: C Sources, Assembler Sources
 SOURCES= \
-Source/main.c 
-
-COMLIB_SOURCES= \
+Source/main.c \
 $(COMLIB_HOME)/STM32F429I-Discovery/stm32f429i_discovery.c \
 $(COMLIB_HOME)/STM32F429I-Discovery/stm32f429i_discovery_lcd.c \
 $(COMLIB_HOME)/STM32F429I-Discovery/stm32f429i_discovery_sdram.c \
@@ -63,7 +61,7 @@ $(COMLIB_HOME)/TraceRecorder/trcStreamingRecorder.c \
 $(COMLIB_HOME)/TraceRecorder/streamports/Jlink_RTT/SEGGER_RTT.c \
 $(COMLIB_HOME)/TraceRecorder/streamports/Jlink_RTT/SEGGER_RTT_Printf.c
 
-COMLIB_ASMSOURCES=$(COMLIB_HOME)/CMSIS/Source/startup_stm32f429_439xx.s
+ASMSOURCES=$(COMLIB_HOME)/CMSIS/Source/startup_stm32f429_439xx.s
 
 # Outputs: Object Files, ELF Executable & 
 #          Converted ELF Executable to Intel HEX format
