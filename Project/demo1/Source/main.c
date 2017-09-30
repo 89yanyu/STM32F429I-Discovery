@@ -1,7 +1,7 @@
 /*
  * main.c
  *
- *  Created on: 2017Äê9ÔÂ24ÈÕ
+ *  Created on: 2017å¹´9æœˆ24æ—¥
  *      Author: 89YY
  */
 #include "stm32f429i_discovery.h"
@@ -38,19 +38,6 @@ char *g_FPSForm     = "         FPS: 0";
 SemaphoreHandle_t g_uiMutexSL;
 uint32_t g_uiFailed;
 
-#define LED_NONE 0
-#define LED_GREEN 1
-#define LED_RED 2
-
-/**
- * LEDSet: Set led
- */
-void LEDSet(uint32_t uiLedState)
-{
-    GPIO_WriteBit(GPIOG, GPIO_Pin_13, (uiLedState & LED_GREEN) != 0 ? 1 : 0);
-    GPIO_WriteBit(GPIOG, GPIO_Pin_14, (uiLedState & LED_RED) != 0 ? 1 : 0);
-}
-
 /**
  * Sender_Task: Product the number
  */
@@ -76,7 +63,7 @@ void SenderTask(void* arg)
         {
             uiNum = 1;
         }
-        vTaskDelayUntil(&xLastWakeTime, 2 / portTICK_RATE_MS);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(2));
     }
 }
 
@@ -119,7 +106,7 @@ void ReceiverTask(void* arg)
             xSemaphoreGive(g_uiMutexRML);
         }
         vTracePrintF(stLogger, "The sum of this round is %u\n", ulTmpSum);
-        vTaskDelayUntil(&xLastWakeTime, 1000 / portTICK_RATE_MS);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
     }
 }
 
@@ -154,14 +141,13 @@ void MonitorTask(void* arg)
             STM_EVAL_LEDOff(LED3);
             vTracePrintF(stLogger, "Wrong, difference is %d.", uiTmpDiff);
         }
-        vTaskDelayUntil(&xLastWakeTime, 10000 / portTICK_RATE_MS);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10000));
     }
 }
 
 void buildString(char *buff, char *format, uint64_t number)
 {
-    uint8_t i;
-    for (i = 14; i >= 0; i--)
+    for (int64_t i = 14; i >= 0; i--)
     {
         if (number > 0)
         {
@@ -247,7 +233,7 @@ void LCDShowTask(void* arg)
         buildString(g_FPSBuff, g_FPSForm, 1000 / (stNow - stLast));
         LCD_DisplayStringLine(LCD_LINE_0, g_FPSBuff);
         stLast = stNow;
-        vTaskDelayUntil(&xLastWakeTime, 16.6 / portTICK_RATE_MS);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(16.6));
     }
 }
 
@@ -286,62 +272,62 @@ void LCDInit()
 
 int main(void)
 {
-    //³õÊ¼»¯LED
+    //åˆå§‹åŒ–LED
     STM_EVAL_LEDInit(LED3);
     STM_EVAL_LEDInit(LED4);
 
     STM_EVAL_LEDOn(LED3);
     STM_EVAL_LEDOn(LED4);
 
-    //Æô¶¯Trace
+    //å¯åŠ¨Trace
     STM_EVAL_PBInit(BUTTON_USER, BUTTON_MODE_GPIO);
     if (STM_EVAL_PBGetState(BUTTON_USER))
     {
         vTraceEnable(TRC_START_AWAIT_HOST);
     }
 
-    //LCDInit();
+    LCDInit();
 
-    //ÉèÖÃµ±Ç°º¯ÊıµÄLogger
+    //è®¾ç½®å½“å‰å‡½æ•°çš„Logger
     traceString stLogger = xTraceRegisterString("Main");
 
-    //´´½¨È«¾Ö¶ÓÁĞ
-    g_hNumberBuff = xQueueCreate(490, sizeof(int));
+    //åˆ›å»ºå…¨å±€é˜Ÿåˆ—
+    g_hNumberBuff = xQueueCreate(512, sizeof(int));
     if (NULL == g_hNumberBuff)
     {
-        //´´½¨¶ÓÁĞÊ§°Ü
+        //åˆ›å»ºé˜Ÿåˆ—å¤±è´¥
         STM_EVAL_LEDOff(LED3);
         vTracePrint(stLogger, "Number buffer create failed");
         for(;;);
     }
 
-    //´´½¨RMLÖ®¼äµÄÈ«¾ÖÊı¾İËø
+    //åˆ›å»ºRMLä¹‹é—´çš„å…¨å±€æ•°æ®é”
     g_uiMutexRML = xSemaphoreCreateMutex();
     if (NULL == g_uiMutexRML)
     {
-        //´´½¨Êı¾İËøÊ§°Ü
+        //åˆ›å»ºæ•°æ®é”å¤±è´¥
         STM_EVAL_LEDOff(LED3);
         vTracePrint(stLogger, "Mutex of Receiver, Monitor & LCD create failed");
         for(;;);
     }
 
-    //´´½¨SLÖ®¼äµÄÈ«¾ÖÊı¾İËø
+    //åˆ›å»ºSLä¹‹é—´çš„å…¨å±€æ•°æ®é”
     g_uiMutexSL = xSemaphoreCreateMutex();
     if (NULL == g_uiMutexSL)
     {
-        //´´½¨Êı¾İËøÊ§°Ü
+        //åˆ›å»ºæ•°æ®é”å¤±è´¥
         STM_EVAL_LEDOff(LED3);
         vTracePrint(stLogger, "Mutex of Sender & LCD create failed");
         for(;;);
     }
 
-    //³õÊ¼»¯È«¾Ö±äÁ¿
+    //åˆå§‹åŒ–å…¨å±€å˜é‡
     g_uiDiff = 0;
     g_uiLoopCnt = 0;
     g_ulSum = 0;
     g_uiState = 0;
 
-    //´´½¨ÈÎÎñ
+    //åˆ›å»ºä»»åŠ¡
     xTaskCreate(SenderTask,
                 "Sender Task",
                 configMINIMAL_STACK_SIZE,
@@ -360,17 +346,17 @@ int main(void)
                 (void*) NULL,
                 tskIDLE_PRIORITY + 3UL,
                 NULL);
-    /*
+
     xTaskCreate(LCDShowTask,
                 "LCDShow Task",
                 configMINIMAL_STACK_SIZE,
                 (void*) NULL,
                 tskIDLE_PRIORITY + 2UL,
                 NULL);
-                */
+
     STM_EVAL_LEDOff(LED4);
 
-    //Æô¶¯ÈÎÎñµ÷¶È
+    //å¯åŠ¨ä»»åŠ¡è°ƒåº¦
     vTaskStartScheduler();
 
     for( ;; );
