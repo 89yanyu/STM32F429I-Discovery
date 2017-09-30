@@ -147,7 +147,8 @@ void MonitorTask(void* arg)
 
 void buildString(char *buff, char *format, uint64_t number)
 {
-    for (int64_t i = 14; i >= 0; i--)
+    uint8_t i;
+    for (i = 14; i >= 0; i--)
     {
         if (number > 0)
         {
@@ -286,13 +287,13 @@ int main(void)
         vTraceEnable(TRC_START_AWAIT_HOST);
     }
 
-    LCDInit();
+    //LCDInit();
 
     //设置当前函数的Logger
     traceString stLogger = xTraceRegisterString("Main");
 
     //创建全局队列
-    g_hNumberBuff = xQueueCreate(512, sizeof(int));
+    g_hNumberBuff = xQueueCreate(490, sizeof(int));
     if (NULL == g_hNumberBuff)
     {
         //创建队列失败
@@ -346,14 +347,14 @@ int main(void)
                 (void*) NULL,
                 tskIDLE_PRIORITY + 3UL,
                 NULL);
-
+    /*
     xTaskCreate(LCDShowTask,
                 "LCDShow Task",
                 configMINIMAL_STACK_SIZE,
                 (void*) NULL,
                 tskIDLE_PRIORITY + 2UL,
                 NULL);
-
+                */
     STM_EVAL_LEDOff(LED4);
 
     //启动任务调度
