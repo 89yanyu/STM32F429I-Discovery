@@ -65,10 +65,11 @@ ASMSOURCES=$(COMLIB_HOME)/CMSIS/Source/startup_stm32f429_439xx.s
 
 # Outputs: Object Files, ELF Executable & 
 #          Converted ELF Executable to Intel HEX format
-OBJECTS=$(SOURCES:%.c=%.o)
-OBJECTS+=$(ASMSOURCES:%.s=%.o)
-EXECUTABLE=demo1.elf
-TARGET=demo1.hex
+OBJECTS  = $(patsubst $(COMLIB_HOME)/%, Object/%, $(patsubst Source/%, $(COMLIB_HOME)/USER/%, $(SOURCES:%.c=%.o)))
+OBJECTS += $(patsubst $(COMLIB_HOME)/%, Object/%, $(patsubst Source/%, $(COMLIB_HOME)/USER/%, $(ASMSOURCES:%.s=%.o)))
+DIR = $(sort $(dir $(OBJECTS)))
+EXECUTABLE=hello_rtos.elf
+TARGET=hello_rtos.hex
 
 # Build Rules
 .PHONY: release
@@ -80,21 +81,36 @@ all: $(TARGET)
 .PHONY: debug
 debug: CFLAGS+=-g # Add debug flag
 debug: LDFLAGS+=-g
-debug: $(TARGET) 
+debug: $(TARGET)
 
-$(TARGET): $(EXECUTABLE)
-	$(CP) -O ihex $< $@
+$(DIR):
+	-mkdir -p "$@"
+
+$(TARGET): $(DIR) $(EXECUTABLE)
+	$(CP) -O ihex $(EXECUTABLE) $@
 	@echo "Objcopy from ELF to IHEX complete!\n"
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+$(EXECUTABLE): $(OBJECTS) $(COMLIB_OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) $(COMLIB_OBJECTS) -o $@
 	@echo "Linking complete!\n"
 
-%.o: %.c
+# Build the C source in common library
+Object/%.o:$(COMLIB_HOME)/%.c
 	$(CC) $(CFLAGS) $< -o $@
 	@echo "Compiled "$<"!\n"
 
-%.o: %.s
+# Build the custom C source
+Object/USER/%.o:Source/%.c
+	$(CC) $(CFLAGS) $< -o $@
+	@echo "Compiled "$<"!\n"
+
+# Build the assemble source in common library
+Object/%.o:$(COMLIB_HOME)/%.s
+	$(CC) $(CFLAGS) $< -o $@
+	@echo "Assambled "$<"!\n"
+
+# Build the customassemble source in common library
+Object/USER/%.o:Source/%.s
 	$(CC) $(CFLAGS) $< -o $@
 	@echo "Assambled "$<"!\n"
 
